@@ -1,0 +1,4 @@
+*.o
+*.deps
+*.bin
+vehicle-rest-server

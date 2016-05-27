@@ -1,0 +1,175 @@
+$ ##################################################################################
+$ 
+$ yum install mongodb
+$ yum install mongo-server
+$ yum install openssl-devel
+$ yum install valgrind
+$ 
+$ ##################################################################################
+$ 
+$ git clone https://cmake.org/cmake.git
+$ cd cmake
+$ ./configure
+$ make
+$ sudo make install
+$ 
+$ ##################################################################################
+$ 
+$ wget http://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2
+$ tar xjf boost_1_61_0.tar.bz2
+$ cd boost_1_61_0
+$ ./bootstrap.sh
+$ ./b2
+$ sudo ./b2 install
+$ 
+$ ##################################################################################
+$ 
+$ git clone https://github.com/Microsoft/cpprestsdk
+$ cd cpprestsdk
+$ cmake Release/ -DBUILD_TESTS=OFF
+$ make
+$ make install
+$ 
+$ ##################################################################################
+$
+$ git clone https://github.com/mongodb/mongo-c-driver.git
+$ cd mongo-c-driver
+$ ./autogen.sh --with-libbson=bundled
+$ make
+$ sudo make install
+$ 
+$ ##################################################################################
+$ 
+$ git clone https://github.com/mongodb/mongo-cxx-driver
+$ cd mongo-cxx-driver
+$ PKG_CONFIG_PATH=/usr/local/lib/pkgconfig cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+$ 
+$ cat > src/bsoncxx/fix_float.h <<EOM
+#pragma once
+
+typedef float _Decimal32 __attribute__((mode(SD)));
+typedef float _Decimal64 __attribute__((mode(DD)));
+typedef float _Decimal128 __attribute__((mode(TD)));
+EOM
+$ 
+$ for i in $(for i in $(find . -name \*.hpp -o -name \*.cpp); do git status $i | grep -q 'nothing to commit' && echo $i; done)
+do
+   sed -i -e '1i\
+#include <bsoncxx/fix_float.h>\
+' $i
+done
+$ 
+$ sudo make
+$ sudo make install
+$ 
+$ ##################################################################################
+$
+$ cat > SampleTestMongoCXX.cpp <<EOM
+#include <iostream>
+
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/json.hpp>
+
+#include <mongocxx/client.hpp>
+#include <mongocxx/options/find.hpp>
+#include <mongocxx/instance.hpp>
+#include <mongocxx/uri.hpp>
+
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::open_document;
+using bsoncxx::builder::stream::close_document;
+using bsoncxx::builder::stream::open_array;
+using bsoncxx::builder::stream::close_array;
+using bsoncxx::builder::stream::finalize;
+
+int main(int, char**) {
+    mongocxx::instance inst{};
+    mongocxx::client conn{mongocxx::uri{}};
+
+    auto db = conn["gullu_db"];
+
+    auto cursor = db["resturants"].find({});
+
+    for (auto&& doc : cursor) {
+       std::cout << bsoncxx::to_json(doc) << std::endl;
+    }
+}
+EOM
+$ PKG_CONFIG_PATH=/usr/local/lib/pkgconfig c++ -std=c++11 SampleTestMongoCXX.cpp -o SampleTestMongoCXX $(PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --cflags --libs libmongocxx)
+$ 
+$ LD_LIBRARY_PATH=/usr/local/lib ./SampleTestMongoCXX
+$ 
+$ ##################################################################################
+$ 
+$ cat > myjsfile.js << EOM
+db.createCollection("Vehicle");
+db.Vehicle.insert( [
+                      { _id: 1, Vehicle_Registration: "MHCA0001", Vehicle_Make: "Chevy1", Vehicle_Model: "Model1", Vehicle_Owner: "Parag Shah1" },
+                      { _id: 2, Vehicle_Registration: "MHCA0002", Vehicle_Make: "Chevy2", Vehicle_Model: "Model2", Vehicle_Owner: "Parag Shah2" },
+                   ]
+                 );
+EOM
+$ mongo gullu_db myjsfile.js
+$ 
+$ ##################################################################################
+$ 
+$ cat > SampleTestCppRest.cpp << EOM
+#include <cpprest/http_client.h>
+#include <cpprest/filestream.h>
+
+using namespace utility;                    // Common utilities like string conversions
+using namespace web;                        // Common features like URIs.
+using namespace web::http;                  // Common HTTP functionality
+using namespace web::http::client;          // HTTP client features
+using namespace concurrency::streams;       // Asynchronous streams
+
+int main(int argc, char* argv[])
+{
+    auto fileStream = std::make_shared<ostream>();
+
+    // Open stream to output file.
+    pplx::task<void> requestTask = fstream::open_ostream(U("results.html")).then([=](ostream outFile)
+    {
+        *fileStream = outFile;
+
+        // Create http_client to send the request.
+        http_client client(U("http://www.bing.com/"));
+
+        // Build request URI and start the request.
+        uri_builder builder(U("/search"));
+        builder.append_query(U("q"), U("Casablanca CodePlex"));
+        return client.request(methods::GET, builder.to_string());
+    })
+
+    // Handle response headers arriving.
+    .then([=](http_response response)
+    {
+        printf("Received response status code:%u\n", response.status_code());
+
+        // Write response body into the file.
+        return response.body().read_to_end(fileStream->streambuf());
+    })
+
+    // Close the file stream.
+    .then([=](size_t)
+    {
+        return fileStream->close();
+    });
+
+    // Wait for all the outstanding I/O to complete and handle any exceptions
+    try
+    {
+        requestTask.wait();
+    }
+    catch (const std::exception &e)
+    {
+        printf("Error exception:%s\n", e.what());
+    }
+
+    return 0;
+}
+EOM
+$ 
+$ c++ SampleTestCppRest.cpp -o SampleTestCppRest -std=c++11 -lcpprest -lboost_system -lssl -lcrypto
+$ 
+$ LD_LIBRARY_PATH=/usr/local/lib ./SampleTestCppRest

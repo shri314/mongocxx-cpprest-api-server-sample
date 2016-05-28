@@ -1,13 +1,18 @@
 $ ##################################################################################
 $ 
+$ yum install gcc-c++            #c++17 supported compiler
 $ yum install mongodb
 $ yum install mongo-server
 $ yum install openssl-devel
-$ yum install valgrind
+$ yum install valgrind           #optional
+$
+$ ##################################################################################
+$ 
+$ sudo service mongod start
 $ 
 $ ##################################################################################
 $ 
-$ git clone https://cmake.org/cmake.git
+$ git clone https://cmake.org/cmake.git    # cpprest requires sufficiently new cmake
 $ cd cmake
 $ ./configure
 $ make
@@ -173,3 +178,5 @@ $
 $ c++ SampleTestCppRest.cpp -o SampleTestCppRest -std=c++11 -lcpprest -lboost_system -lssl -lcrypto
 $ 
 $ LD_LIBRARY_PATH=/usr/local/lib ./SampleTestCppRest
+$ 
+$ ##################################################################################

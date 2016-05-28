@@ -95,7 +95,7 @@ clean::
 	rm -f $(BINS) $(OBJS) $(TEST_BINS) $(TEST_OBJS) $(DEPS) $(TEST_DEPS)
 
 init::
-	mongo gullu_db myjsfile.js
+	mongo gullu_db res/myjsfile.js
 
 ################################################################
 

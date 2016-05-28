@@ -28,9 +28,13 @@ DESIGN:
 
 WEB.RESOURCES:
 ==============
-cpprest sdk          : http://microsoft.github.io/cpprestsdk/index.html                                                 [REFERENCE DOC]
+cpprest sdk          : https://github.com/Microsoft/cpprestsdk                                                          [GITHUB]
+                     : http://microsoft.github.io/cpprestsdk/index.html                                                 [REFERENCE DOC]
                      : https://casablanca.codeplex.com/wikipage?title=Http%20Client%20Tutorial                          [HTTP CLIENT TUTORIAL]
                      : http://mariusbancila.ro/blog/2013/08/19/full-fledged-client-server-example-with-cpprest-sdk-110/ [CLIENT-SERVER TUTORIAL]
 
-mongocxx and bsoncxx : http://mongodb.github.io/mongo-cxx-driver/index.html                                             [REFERENCE DOC]
+mongocxx and bsoncxx : https://github.com/mongodb/mongo-cxx-driver                                                      [GITHUB]
+                     : http://mongodb.github.io/mongo-cxx-driver/index.html                                             [REFERENCE DOC]
                      : https://github.com/mongodb/mongo-cxx-driver/wiki/Quickstart-Guide-(New-Driver)                   [QUICK START TUTORIAL]
+
+mongodb              : https://www.mongodb.com/

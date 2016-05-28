@@ -26,9 +26,8 @@ using namespace web::http::experimental::listener;  // HTTP server features
 struct server
 {
    public:
-      explicit server(int port = 8080, const std::string& localip = "0.0.0.0")
+      explicit server(int port = 8080, const std::string& localip = "0.0.0.0", const std::string& DBName = "gullu_db")
       {
-         static std::string DBName        = "gullu_db";
          static std::string DataTableName = "Vehicle";
          static std::string LogTable      = "VehicleQueries";
          static std::string QueryPrefix   = "filterBy";
@@ -36,7 +35,7 @@ struct server
 
          http_listener L(uri(U("http://" + localip + ":" + boost::lexical_cast<std::string>(port) + "/vehicle")));
 
-         L.support(methods::GET, [](http_request req)
+         L.support(methods::GET, [DBName](http_request req)
          {
             auto&& http_get_vars = uri::split_query(req.request_uri().query());
 

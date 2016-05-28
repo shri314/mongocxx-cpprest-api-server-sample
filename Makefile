@@ -21,7 +21,8 @@ LIBS := \
    -lcpprest \
    -lboost_system \
    -lssl \
-   -lcrypto
+   -lcrypto \
+   -lpthread
 
 SOURCES := \
    ./src/vehicle-rest-server.cpp
@@ -45,6 +46,7 @@ DEPS := $(SOURCES:%.cpp=%.deps)
 TEST_OBJS := $(TEST_SOURCES:%.cpp=%.o)
 TEST_DEPS := $(TEST_SOURCES:%.cpp=%.deps)
 TEST_BINS := $(TEST_SOURCES:%.cpp=%.bin)
+TEST_CHKS := $(TEST_SOURCES:%.cpp=%.chk)
 
 .PRECIOUS: %.cpp %.c %.h %.o %.deps %.bin
 
@@ -57,7 +59,7 @@ check:: check-all
 ################################################################
 
 %.deps: %.cpp Makefile
-	@$(CXX) $(CXXFLAGS) $(INCLUDES) -MM -MG -MP $< > $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -MM -MG -MP $< > $@
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $(INCLUDES) $<
@@ -78,11 +80,16 @@ run:: vehicle-rest-server
 
 ################################################################
 
-compile-all:: $(DEPS) $(TEST_DEPS)
+deps-all:: $(DEPS) $(TEST_DEPS)
+
+compile-all:: deps-all
 	$(MAKE) $(BINS)
 
-check-all:: $(TEST_BINS)
-	@$(MAKE) $(TEST_SOURCES:%.cpp=%.chk)
+compile-test-all:: deps-all
+	$(MAKE) $(TEST_BINS)
+
+check-all:: compile-test-all
+	$(MAKE) $(TEST_CHKS)
 
 clean::
 	rm -f $(BINS) $(OBJS) $(TEST_BINS) $(TEST_OBJS) $(DEPS) $(TEST_DEPS)

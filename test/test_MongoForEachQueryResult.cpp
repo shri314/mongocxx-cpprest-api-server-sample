@@ -11,7 +11,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-BOOST_AUTO_TEST_CASE(BasicTest)
+BOOST_AUTO_TEST_CASE(End2EndTest)
 {
    auto&& inst = mongocxx::instance{};
    auto&& conn = mongocxx::client{mongocxx::uri{}};
